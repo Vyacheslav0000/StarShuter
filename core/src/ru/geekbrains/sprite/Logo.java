@@ -9,14 +9,14 @@ import ru.geekbrains.math.Rect;
 
 public class Logo extends Sprite {
 
-    private static final float V_LEN = 0.02f;
+    private static final float V_LEN = 0.01f;
 
     private Vector2 touch;
     private Vector2 v;
     private Vector2 buf;
 
     public Logo(Texture region) {
-        super(new TextureRegion (region));
+        super(new TextureRegion(region));
         touch = new Vector2();
         v = new Vector2();
         buf = new Vector2();
@@ -24,13 +24,13 @@ public class Logo extends Sprite {
 
     @Override
     public void resize(Rect worldBounds) {
-        setHeightProportion(0.5f);
+        setHeightProportion(0.4f);
     }
 
     @Override
     public void touchDown(Vector2 touch, int pointer, int button) {
         this.touch.set(touch);
-        v.set(touch.sub(pos).setLength(V_LEN));
+        v.set(touch.sub(pos)).setLength(V_LEN);
     }
 
     @Override
