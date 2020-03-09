@@ -1,6 +1,5 @@
 package ru.geekbrains.screen;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -9,58 +8,44 @@ import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.base.BaseScreen;
 import ru.geekbrains.math.Rect;
+import ru.geekbrains.pool.BulletPool;
 import ru.geekbrains.sprite.Background;
-import ru.geekbrains.sprite.ButtonExit;
-import ru.geekbrains.sprite.ButtonPlay;
+import ru.geekbrains.sprite.MainShip;
 import ru.geekbrains.sprite.Star;
-import ru.geekbrains.sprite.Logo;
 
-public class MenuScreen extends BaseScreen {
+public class GameScrenn extends BaseScreen {
 
-    private static final int STAR_COUNT = 256;
-
-    private final Game game;
+    private static final int STAR_COUNT = 64;
 
     private TextureAtlas atlas;
 
     private Texture bg;
     private Background background;
-
     private Star[] stars;
 
-    private ButtonExit buttonExit;
-    private ButtonPlay buttonPlay;
+    private MainShip mainShip;
 
-    public MenuScreen(Game game) {
-        this.game = game;
-    }
+    private BulletPool bulletPool;
 
     @Override
     public void show() {
         super.show();
         bg = new Texture("textures/bg.png");
         background = new Background(bg);
-        atlas = new TextureAtlas(Gdx.files.internal("textures/menuAtlas.tpack"));
+        atlas = new TextureAtlas(Gdx.files.internal("textures/mainAtlas.tpack"));
         stars = new Star[STAR_COUNT];
         for (int i = 0; i < STAR_COUNT; i++) {
-            stars[i] = new Star(atlas);
+            stars [i] = new Star(atlas);
         }
-        buttonExit = new ButtonExit(atlas);
-        buttonPlay = new ButtonPlay(atlas, game);
+        bulletPool = new BulletPool();
+        mainShip = new MainShip (atlas, bulletPool);
     }
 
     @Override
     public void render(float delta) {
-        super.render(delta);
         update(delta);
+        freeAllDestroyed();
         draw();
-    }
-
-    @Override
-    public void dispose() {
-        bg.dispose();
-        atlas.dispose();
-        super.dispose();
     }
 
     @Override
@@ -70,28 +55,51 @@ public class MenuScreen extends BaseScreen {
         for (Star star : stars) {
             star.resize(worldBounds);
         }
-        buttonExit.resize(worldBounds);
-        buttonPlay.resize(worldBounds);
+        mainShip.resize(worldBounds);
+    }
+
+    @Override
+    public void dispose() {
+        bg.dispose();
+        atlas.dispose();
+        bulletPool.dispose();
+        super.dispose();
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        mainShip.keyDown(keycode);
+        return super.keyDown(keycode);
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        mainShip.keyUp(keycode);
+        return super.keyUp(keycode);
     }
 
     @Override
     public boolean touchDown(Vector2 touch, int pointer, int button) {
-        buttonExit.touchDown(touch, pointer, button);
-        buttonPlay.touchDown(touch, pointer, button);
-        return false;
+        mainShip.touchDown(touch, pointer, button);
+        return super.touchDown(touch, pointer, button);
     }
 
     @Override
     public boolean touchUp(Vector2 touch, int pointer, int button) {
-        buttonExit.touchUp(touch, pointer, button);
-        buttonPlay.touchUp(touch, pointer, button);
-        return false;
+        mainShip.touchUp(touch, pointer, button);
+        return super.touchUp(touch, pointer, button);
     }
 
     private void update(float delta) {
         for (Star star : stars) {
             star.update(delta);
         }
+        mainShip.update(delta);
+        bulletPool.updateActiveSprites(delta);
+    }
+
+    private void freeAllDestroyed() {
+        bulletPool.freeAllDestroyedActiveObjects();
     }
 
     private void draw() {
@@ -102,8 +110,8 @@ public class MenuScreen extends BaseScreen {
         for (Star star : stars) {
             star.draw(batch);
         }
-        buttonExit.draw(batch);
-        buttonPlay.draw(batch);
+        mainShip.draw(batch);
+        bulletPool.drawActiveSprites(batch);
         batch.end();
     }
 }
